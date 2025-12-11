@@ -1,3 +1,11 @@
+DROP DATABASE IF EXISTS scheduling_app;
+CREATE DATABASE scheduling_app;
+USE scheduling_app;
+
+DROP TABLE IF EXISTS deliveries_table;
+DROP TABLE IF EXISTS user_table;
+DROP TABLE IF EXISTS customer_info;
+
 CREATE TABLE user_table (
 	user_id INT AUTO_INCREMENT PRIMARY KEY,
     last_name VARCHAR(100) NOT NULL,
