@@ -7,6 +7,7 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
+    database: 'scheduling_app',
     port: 3306 
 });
 
