@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/xTfTV/Scheduling_app/issues"
   },
-  "homepage": "https://github.com/xTfTV/Scheduling_app#readme"
+  "homepage": "https://github.com/xTfTV/Scheduling_app#readme",
+  "dependencies": {
+    "mysql": "^2.18.1"
+  }
 }
