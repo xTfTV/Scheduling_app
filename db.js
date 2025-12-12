@@ -19,3 +19,6 @@ connection.connect((err) => {
     }
     console.log("Connection to the DB was successful!");
 })
+
+// Exporting the module
+module.exports = connection;
