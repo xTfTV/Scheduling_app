@@ -1,4 +1,16 @@
-.head {
+/* Adjusting the design of the site to have this login in the center */
+.container {
     text-align: center;
-    color: red;
+    max-width: 500px;
+    margin: 0 auto;
+    padding-top: 80px;
+}
+/* Creating a visual card to make this look better */
+.card {
+    max-width: 700px;
+    background-color: #dedfe2;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    margin: 0 auto;
 }
