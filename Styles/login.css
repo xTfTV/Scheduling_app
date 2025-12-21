@@ -52,3 +52,9 @@
     border: 1px solid #c9c9c9;
     cursor: pointer;
 }
+
+.error {
+    margin: 0;
+    text-align: center;
+    font-size: 14px;
+}

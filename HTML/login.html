@@ -23,17 +23,18 @@
             </p>
             <br>
             <p id="small">Please log in with your user ID and password</p>
-            <form class="login">
+            <form class="login" id="loginForm">
                 <div class="field">
-                    <input class="username" type="text" placeholder="Sign in name" required>
+                    <input class="email" type="text" placeholder="Sign in email" name="email" required>
                 </div>
                 <div class="field">
-                    <input class="password" type="password" placeholder="Password" required>
+                    <input class="password" type="password" placeholder="Password" name="password" required>
                 </div>
                 <button type="submit" class="sign-in-btn">Sign in</button>
+                <p id="errorMsg" class="error" aria-live="polite"></p>
             </form>
         </div>
     </div>
-    <script src="/Scheduling_App/JS/login.js"></script>
+    <script src="/JS/login.js"></script>
 </body>
 </html>
