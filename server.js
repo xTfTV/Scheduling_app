@@ -59,11 +59,6 @@ async function seedDefaultAdmin() {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Allows HTML forms to be submitted
 
-// Serving the files
-app.use(express.static(path.join(__dirname, 'HTML')));
-app.use('/Styles', express.static(path.join(__dirname, 'Styles')));
-app.use('/JS', express.static(path.join(__dirname, 'JS')));
-
 // Adding the session middleware
 // Stores user in req.session.user after successful login and browser will keep a cookie to prove login
 app.use(session({
@@ -114,19 +109,12 @@ app.get('/API/is_logged_in', (req,res) => {
 
 // Adding middleware to protect routes
 function reqAuth(req, res, next) {
-    if (!req.session.user) return res.status(401).json({ message: 'Not Logged in' });
+    if (!req.session.user) return res.redirect('/login.html');
     next();
 }
 
-// Making the require admin function for the users API
-function reqAdmin(req, res, next) {
-    if (!req.session.user) return res.status(401).json({ message: 'Not logged in' });
-    if(req.session.user.role !== 'admin') return res.status(403).json({ message: 'No access: need to be an admin to see' });
-    next();
-}
-
-// Protected Route for logging in to the index.html page
-app.get(['/', '/index.html'], reqAuth, (req, res) => {
+// Protecting index.html
+app.get(['/', '/index.html'], reqAuth, (req,res) => {
     res.sendFile(path.join(__dirname, 'HTML', 'index.html'));
 });
 
@@ -139,9 +127,16 @@ app.use(express.static(path.join(__dirname, 'HTML')));
 app.use('/Styles', express.static(path.join(__dirname, 'Styles')));
 app.use('/JS', express.static(path.join(__dirname, 'JS')));
 
+// Making the require admin function for the users API
+function reqAdmin(req, res, next) {
+    if (!req.session.user) return res.status(401).json({ message: 'Not logged in' });
+    if(req.session.user.role !== 'admin') return res.status(403).json({ message: 'No access: need to be an admin to see' });
+    next();
+}
+
 // Creating the API to send and retrieve the users
 app.get('/API/users', reqAdmin, (req, res) => {
-    db.query('SELECT user_id, first_name, last_name, user_email, role created_at FROM user_table ORDER BY created_at DESC', (err, results) => {
+    db.query('SELECT user_id, first_name, last_name, user_email, role, created_at FROM user_table ORDER BY created_at DESC', (err, results) => {
         if (err) {
             return res.status(500).send(err);
         }
