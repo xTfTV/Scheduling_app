@@ -3,10 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scheduling app</title>
-    <link rel="stylesheet" href="/Scheduling_App/Styles/styles.css">
+    <title>Delivery Scheduling</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
 </head>
 <body>
-    <script src="/Scheduling_App/JS/index.js"></script>
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="pill is-active">Weekly View</button>
+            <button class="pill">Refresh</button>
+            <button class="pill">Search</button>
+            <button class="pill">Reports</button>
+            <button class="pill">Drivers</button>
+            <button class="pill">Messages <span class="badge">0</span></button>
+        </div>
+        <div class="topbar-right">
+            <select class="select">
+                <option selected>Insert Driver...</option>
+                <option>Driver: John D</option>
+                <option>Driver: Sarah K</option>
+            </select>
+            <button class="icon-btn" title="Info" aria-label="Info">i</button>
+        </div>
+    </header>
+    <!-- Filters out the rows -->
+     <section class="controls">
+        <div class="controls-row">
+            <div class="controls-group">
+                <label class="label">Office</label>
+                <select class="select wide">
+                    <option selected>0250 Example Location</option>
+                    <option>0100 Another Location</option>
+                </select>
+            </div>
+            <div class="controls-group">
+                <label class="label">Date</label>
+                <div class="datewrap">
+                    <span class="muted">Mon</span>
+                    <input class="input" type="date" value="2025-12-29" />
+                </div>
+            </div>
+            <div class="controls-group controls-group-inline">
+                <button class="chip" aria-label="Previous day">›</button>
+                <button class="pill small">Today</button>
+                <button class="chip" aria-label="Next Day">›</button>
+                <button class="pill small">Calendar</button>
+            </div>
+            <div class="controls-group controls-group-inline">
+                <label class="label">Jump Ahead</label>
+                <input class="input short" type="number" min="0" placeholder="0" />
+                <span class="muted">Weeks</span>
+                <button class="pill small">Go</button>
+            </div>
+            <div class="controls-stats">
+                <div class="stat">
+                    <div class="stat-label">Todays Deliveries</div>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Last Week</div>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+        </div>
+     </section>
+     <!-- Schedule Grid -->
+      <main class="page">
+        <div class="gridwrap">
+            <table class="schedule" aria-label="Delivery schedule grid">
+                <thead>
+                    <tr>
+                        <th class="sticky-col">Time</th>
+                        <th>Driver A</th>
+                        <th>Driver B</th>
+                        <th>Driver C</th>
+                        <th>Driver D</th>
+                        <th class="right-col">Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody"></tbody>
+            </table>
+        </div>
+      </main>
+    <script src="/JS/index.js"></script>
 </body>
 </html>
