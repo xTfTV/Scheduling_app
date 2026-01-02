@@ -5,12 +5,18 @@ const intervalMinutes = 10;
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const demoDeliveries = [
-    // Driver, date (yyyy--mm-dd), start (hh:mm 24h), durationMin, title, note, style
-    {driver: "Driver C", date: "2025-12-29", start: "9:30", duration: 40, title: "Gayle Redavid", note: "EX Cust", style: "blue"},
-    {driver: "Driver C", date: "2025-12-29", start: "10:10", duration: 20, title: "John Carson", note: "NEW Cust", style: "blue"},
-    {driver: "Driver A", date: "2025-12-28", start: "8:00", duration: 90, title: "No Driver", note: "", style: "yellow"},
-];
+let deliveries = [];
+
+async function fetchWeekDeliveries(driver, weekStartISO) {
+    const params = new URLSearchParams({ driver, weekStart: weekStartISO });
+    const res = await fetch(`/API/deliveries/week?${params.toString()}`);
+
+    if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Failed to fetch deliveries");
+    }
+    return await res.json();
+}
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -70,18 +76,21 @@ function formatRangeLabel (weekStart) {
     return `${weekStart.toLocaleDateString(undefined, opts)} - ${end.toLocaleDateString(undefined, opts)}`;
 }
 
-function renderHeader (weekStart, driver) {
+function renderHeader (weekStart, driverLabel) {
     const head = document.getElementById("weeklyHeadRow");
     const cols = [];
     cols.push(`<th class="sticky-col">Time</th>`);
 
+    const showDriverLine = driverLabel && driverLabel !== "All Drivers";
+
     for(let i = 0; i < 7; i++) {
         const d = addDays(weekStart, i);
+        const dayText = `${dayNames[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`;
         cols.push(`
             <th>
                 <div class="dayhead">
-                    <div class="d1">${dayNames[d.getDay()]} ${d.getMonth()+1}/${d.getDate()}</div>
-                    <div class="d2">${driver}</div>
+                    <div class="d1">${dayText}</div>
+                    ${showDriverLine ? `<div class="d2">${driverLabel}</div>` : ``}
                 </div>
             </th>
         `);
@@ -90,17 +99,50 @@ function renderHeader (weekStart, driver) {
     head.innerHTML = cols.join("");
 }
 
+// temp till i adjust the table
+const DEFAULT_DURATION_MIN = 60;
+
 function buildDeliveryMap (driver, weekStart) {
     const map = new Map(); 
 
-    const weekDates = new Set(Array.from({length:7}), (_,i)=>toISODate(addDays(weekStart,i)));
+    const weekDates = new Set(
+        Array.from({ length: 7 }, (_, i) => toISODate(addDays(weekStart, i)))
+    );
 
-    demoDeliveries.filter(d => d.driver === driver && weekDates.has(d.date))
-        .forEach(d => {
-            const startMin = timeToMinutes(d.start);
-            const slots = Math.max(1, Math.ceil(d.duration / intervalMinutes));
-            map.set(`${d.date}|${minutesToKey(startMin)}`, { ...d, slots });
+    deliveries.filter(d => {
+        // Driver filter: if all, include everyone
+        // if(driver !== "all" && String(d.user_id) !== String(driver)) return false;
+
+        // scheduled_time -> dateKey
+        const dt = new Date(d.scheduled_time);
+        if (Number.isNaN(dt.getTime())) return false;
+
+        const dateKey = toISODate(dt);
+        return weekDates.has(dateKey);
+    })
+    .forEach(d => {
+        const dt = new Date(d.scheduled_time);
+
+        const dateKey = toISODate(dt);
+        const timeKey = `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+
+        // duration until adding the duration col
+        const duration = d.duration_min ?? DEFAULT_DURATION_MIN;
+
+        const slots = Math.max(1, Math.ceil(duration / intervalMinutes));
+
+        // key is date and time
+        map.set(`${dateKey}|${timeKey}`, {
+            title: d.del_address,
+            note: `${d.del_city} ${d.del_zip}`,
+            style: d.deliv_status === "completed" ? "yellow" : "blue",
+            start: timeKey,
+            duration,
+            slots,
+            deliv_id: d.deliv_id,
+            raw: d
         });
+    });
     return map;
 }
 
@@ -114,7 +156,8 @@ function getWeekStartFromInput() {
 }
 
 function renderWeeklyGrid() {
-    const driver = document.getElementById("driver-select").value;
+    const driverSelectEl = document.getElementById("driver-select");
+    const driverId = driverSelectEl.value;
     const weekOfInput = document.getElementById("weekOf");
     const weekRange = document.getElementById("weekRange");
 
@@ -124,11 +167,17 @@ function renderWeeklyGrid() {
     weekOfInput.value = toISODate(weekStart);
     weekRange.textContent = formatRangeLabel(weekStart);
 
-    renderHeader(weekStart, driver);
+    // Display name for the header
+    const driverLabel = 
+        driverId === "all"
+            ? "All Drivers"
+            : driverSelectEl.options[driverSelectEl.selectedIndex].text;
+
+    renderHeader(weekStart, driverLabel);
 
     const times = buildTimes();
     const tbody = document.getElementById("weeklyBody");
-    const deliveryMap = buildDeliveryMap(driver, weekStart);
+    const deliveryMap = buildDeliveryMap(driverId, weekStart);
 
     // For rowspan skipping: track for each day column how many rows remain "coverd"
     const skip = Array(7).fill(0);
@@ -168,7 +217,7 @@ function renderWeeklyGrid() {
                 // empty slot
                 cells.push(`
                     <td>
-                        <div class="slot" data-driver="${driver}" data-date="${dateKey}" data-time="${t.key}">
+                        <div class="slot" data-driver="${driverId}" data-date="${dateKey}" data-time="${t.key}">
                             <a class="slot-link" href="#" aria-label="Create Delivery">+</a>
                         </div>
                     </td>
@@ -212,6 +261,24 @@ function handlePrint() {
     setTimeout(() => document.body.classList.remove("is-printing"), 250);
 }
 
+// Adding the refresh button functionality
+async function refreshDataAndRender() {
+    const driverId = document.getElementById("driver-select").value;
+    const weekStart = getWeekStartFromInput();
+    const weekStartISO = toISODate(weekStart);
+
+    try {
+        // send driver=all and let backend ignore the filter
+        // used if we want to to handle "ALL DRIVERS"
+        deliveries = await fetchWeekDeliveries(driverId, weekStartISO);
+
+        renderWeeklyGrid();
+    } catch (err) {
+        console.error("Refresh Failed: ", err);
+        alert("Could not refresh deliveries. check console for details.");
+    }
+}
+
 function init() {
     const driverSelect = document.getElementById("driver-select");
     const weekOf = document.getElementById("weekOf");
@@ -223,6 +290,11 @@ function init() {
 
     const btnGo = document.getElementById("btnGo");
     const jumpWeeks = document.getElementById("jumpWeeks");
+
+    const btnRefresh = document.getElementById("btn-refresh");
+    btnRefresh.addEventListener("click", () => {
+        window.location.reload();
+    });
 
     // Calling the print button
     btnPrint.addEventListener("click", handlePrint);

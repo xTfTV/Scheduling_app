@@ -158,6 +158,55 @@ app.get('/API/deliveries', reqAuth, (req, res) => {
     });
 });
 
+// Adding the Driver API
+app.get('/API/drivers', reqAuth, (req, res) => {
+    db.query(
+        `SELECT user_id, first_name, last_name, user_email
+         FROM user_table
+         WHERE role = 'user'
+         ORDER BY last_name, first_name`,
+         (err, results) => {
+            if (err) return res.status(500).json({ message: "DB error" });
+            res.json(results);
+         }
+    );
+});
+
+// Creating the deliveries endpoint for weekly deliveries
+app.get('/API/deliveries/week', reqAuth, (req, res) => {
+    const { weekStart } = req.query;
+
+    const userId = req.query.driver ?? req.query.userId ?? "all";
+
+    if(!weekStart || !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+        return res.status(400).json({ message:"Missing weekStart (YYYY-MM-DD)" });
+    }
+
+    // weekStart needs to be YYYY-MM-DD (sunday)
+    // We select 7 days: [weekStart, weekStart + 7 days]
+    const start = `${weekStart} 00:00:00`;
+    let sql = `
+        SELECT *
+        FROM deliveries_table
+        WHERE scheduled_time >= ?
+            AND scheduled_time < DATE_ADD(?, INTERVAL 7 DAY)
+        `;
+        const params = [start, start];
+
+        if (userId && userId !== "all") {
+            sql += ` AND user_id = ? `;
+            params.push(Number(userId));
+        }
+        sql += ` ORDER BY scheduled_time ASC `;
+
+        db.query(sql, params, (err, results) => {
+            if(err) {
+            return res.status(500).json({ message: "DB ERROR " });
+            }
+            res.json(results);
+    });
+});
+
 // Creating the API to send and retrieve customer information
 app.get('/API/customers', reqAuth, (req, res) => {
     db.query('SELECT * FROM customer_info', (err, results) => {
