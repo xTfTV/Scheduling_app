@@ -3,7 +3,7 @@
 const drivers = ["Driver A", "Driver B", "Driver C", "Driver D"];
 const startHour = 7;
 const endHour = 20;
-const intervalMinutes = 60;
+const intervalMinutes = 10;
 
 function formatTime(h24, m) {
     const ampm = h24 >= 12 ? "PM" : "AM";
