@@ -1,0 +1,131 @@
+.weekly-title {
+    font-size: 18px;
+    font-weight: 900;
+    margin-right: 8px;
+}
+
+.schedule-weekly {
+    min-width: 1200px;
+}
+
+.schedule-weekly thead th {
+    white-space: nowrap;
+}
+
+.dayhead {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dayhead .d1 { font-weight: 900; }
+.dayhead .d2 { font-size: 12px; color:#6b7280; font-weight: 700; }
+
+.delivery {
+    width: 100%;
+    background: #1d4ed8;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 6px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+.delivery small {
+    font-weight: 800;
+    opacity: 0.9;
+}
+
+.delivery.is-yellow {
+    background: #fff7cc;
+    color: #111827;
+    border-left: 4px solid #f59e0b;
+}
+
+.cellpad { padding: 0; }
+
+/* Setting the print button styles */
+@media print {
+    /* Force landscape so that the week fits */
+    @page {
+        size: landscape;
+        margin: 0.4in;
+    }
+
+    /* Hide the navigation/controls you dont want on the paper */
+    .topbar, .controls, .slot-links, .icon-btn, .chip, .pill, select,
+    input, button { display: none !important; }
+
+    /* Keeping the title visible */
+    .weekly-title {
+        display: block !important;
+        font-size: 16px;
+        font-weight: 900;
+        margin: 0 0 10px 0;
+    }
+
+    /* Making the table fit the entire page */
+    body {
+        background: #fff !important;
+    }
+
+    .page {
+        padding: 0 !important;
+    }
+
+    .gridwrap {
+        border: 0 !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+        max-height: nonw !important;
+    }
+
+    .schedule {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Shrink the typography */
+    .schedule th thead {
+        font-size: 10px !important;
+        padding: 6px 6px !important;
+    }
+
+    .schedule tbody td.time {
+        font-size: 10px !important;
+        padding: 0 6px !important;
+    }
+
+    /* Tightening the 10 min slots */
+    :root {
+        --cellH: 18px;
+    }
+
+    .slot {
+        height: var(--cellH) !important;
+        padding: 0 4px !important;
+    }
+
+    /* make delivery blocks print friendly */
+    .delivery {
+        margin: 2px !important;
+        padding: 3px 6px !important;
+        border-radius: 6px !important;
+        font-size: 9px !important;
+        box-shadow: none !important;
+    }
+
+    .delivery small {
+        font-size: 9px !important;
+    }
+
+    /* Remove the sticky behavior for print */
+    .sticky-col, .schedule tbody td.time, .schedule thead th {
+        position: static !important;
+    }
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deliveries</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
+    <link rel="stylesheet" href="../Styles/weekly.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="pill" href="/index.html" style="text-decoration: none;">Daily View</a>
+            <button class="pill" id="btn-refresh">Refresh</button>
+            <button class="pill">Search</button>
+            <button class="pill">Reports</button>
+            <button class="pill">Drivers</button>
+            <button class="pill" id="btnPrint">Print</button>
+            <button class="pill">Messages <span class="badge">0</span></button>
+        </div>
+        <div class="topbar-right">
+            <span class="muted" id="whoami"></span>
+            <button class="icon-btn" title="Info" aria-label="Info">i</button>
+        </div>
+    </header>
+    <section class="controls">
+        <div class="controls-row">
+            <div class="controls-group">
+                <div class="weekly-title">Deliveries By Week</div>
+            </div>
+            <div class="controls-group">
+                <label class="label">Office</label>
+                <select class="select wide" id="officeSelect">
+                    <option selected>0250 Sample Location</option>
+                    <option>0100 Another Location</option>
+                </select>
+            </div>
+            <div class="controls-group">
+                <label class="Label">Driver</label>
+                <select id="driver-select" class="select">
+                    <option value="Driver A" selected>Driver A</option>
+                    <option value="Driver B">Driver B</option>
+                    <option value="Driver C">Driver C</option>
+                    <option value="Driver D">Driver D</option>
+                </select>
+            </div>
+            <div class="controls-group">
+                <label class="label">Week of (Sun)</label>
+                <div class="datewrap">
+                    <span class="muted">Sun</span>
+                    <input type="date" id="weekOf" class="input" />
+                    <span id="weekRange" class="muted"></span>
+                </div>
+            </div>
+            <div class="controls-group controls-group-inline">
+                <button id="btnPrevWeek" class="chip" aria-label="Previous Week">‹</button>
+                <button id="btnThisWeek" class="pill small">This week</button>
+                <button id="btnNextWeek" class="chip" aria-label="Next Week">›</button>
+                
+            </div>
+            <div class="controls-group controls-group-inline">
+                <label class="label">Jump Ahead</label>
+                <input id="jumpWeeks" class="input short" type="number" min="0" placeholder="0" />
+                <span class="muted">weeks</span>
+                <button id="btnGo" class="pill small">Go</button>
+            </div>
+        </div>
+    </section>
+    <main class="page">
+        <div class="gridwrap">
+            <table class="schedule schedule-weekly" aria-label="Weekly Driver Schedule">
+                <thead>
+                    <tr id="weeklyHeadRow"></tr>
+                </thead>
+                <tbody id="weeklyBody"></tbody>
+            </table>
+        </div>
+    </main>
+    <script src="/JS/weekly.js"></script>
+</body>
+</html>

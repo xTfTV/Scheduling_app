@@ -118,6 +118,10 @@ app.get(['/', '/index.html'], reqAuth, (req,res) => {
     res.sendFile(path.join(__dirname, 'HTML', 'index.html'));
 });
 
+app.get('/weekly.html', reqAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'HTML', 'weekly.html'));
+});
+
 app.get('/login.html', (req,res) => {
     res.sendFile(path.join(__dirname, 'HTML', 'login.html'));
 });
