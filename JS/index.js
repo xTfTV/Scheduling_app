@@ -70,6 +70,12 @@ function renderGrid() {
 document.addEventListener("DOMContentLoaded", () => {
     renderGrid();
 
+    // Doing the hard reload when clicking the refresh button
+    const btnRefresh = document.getElementById("btn-refresh");
+    if (btnRefresh) {
+        btnRefresh.addEventListener("click", () => {window.location.reload()});
+    }
+
     // Layout only -- preventing page jump when clicking +
     document.addEventListener("click", (e) => {
         const a = e.target.closest(".slot-link");
