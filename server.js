@@ -217,6 +217,16 @@ app.get('/API/customers', reqAuth, (req, res) => {
     });
 });
 
+app.post("/API/logout", (req,res) => {
+    // Destroy the session and clear the cookies
+    req.session.destroy((err) => {
+        res.clearCookie("connect.sid", { path: "/" });
+        if (err) return res.status(500).json({ message: "Logout failed" });
+        return res.json({ ok: true });
+    });
+});
+
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     seedDefaultAdmin(); // DEV only

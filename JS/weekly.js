@@ -296,6 +296,19 @@ function init() {
         window.location.reload();
     });
 
+    // Adding the logout functionality
+    const btnLogout = document.getElementById("btnLogout");
+    if(btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+            try {
+                const res = await fetch("/API/logout", { method: "POST" });
+                window.location.href = "/login.html";
+            } catch (e) {
+                window.location.href = "/login.html";
+            }
+        });
+    }
+
     // Calling the print button
     btnPrint.addEventListener("click", handlePrint);
 

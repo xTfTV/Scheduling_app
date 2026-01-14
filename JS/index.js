@@ -83,3 +83,20 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
     });
 });
+
+function init() {
+    // temp position for the logout functionality
+    const btnLogout = document.getElementById("btnLogout");
+    if(btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+            try {
+                const res = await fetch("/API/logout", { method: "POST" });
+                window.location.href = "/login.html";
+            } catch (e) {
+                window.location.href = "/login.html";
+            }
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", init);
