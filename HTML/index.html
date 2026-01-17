@@ -38,21 +38,21 @@
             <div class="controls-group">
                 <label class="label">Date</label>
                 <div class="datewrap">
-                    <span class="muted">Mon</span>
-                    <input class="input" type="date" value="2025-12-29" />
+                    <span class="muted" id="dayLabel">Mon</span>
+                    <input class="input" type="date" id="dateInput" />
                 </div>
             </div>
             <div class="controls-group controls-group-inline">
-                <button class="chip" aria-label="Previous day">›</button>
-                <button class="pill small">Today</button>
-                <button class="chip" aria-label="Next Day">›</button>
-                <button class="pill small">Calendar</button>
+                <button class="chip" id="btnPrevDay" aria-label="Previous day">›</button>
+                <button class="pill small" id="btnToday">Today</button>
+                <button class="chip" id="btnNextDay" aria-label="Next Day">›</button>
+                <button class="pill small" id="btnCalendar">Calendar</button>
             </div>
             <div class="controls-group controls-group-inline">
                 <label class="label">Jump Ahead</label>
-                <input class="input short" type="number" min="0" placeholder="0" />
+                <input class="input short" id="jumpDays" type="number" min="0" placeholder="0" />
                 <span class="muted">Weeks</span>
-                <button class="pill small">Go</button>
+                <button class="pill small" id="btnGo">Go</button>
             </div>
             <div class="controls-stats">
                 <div class="stat">

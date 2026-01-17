@@ -5,6 +5,27 @@ const startHour = 7;
 const endHour = 20;
 const intervalMinutes = 10;
 
+const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+let selectedDay = null;
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+function startOfDay(d) {
+    const x = new Date(d);
+    x.setHours(0,0,0,0);
+    return x;
+}
+
+function toISODate(d) {
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+
+function addDays(date, n) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + n);
+    return startOfDay(d);
+}
+
 function formatTime(h24, m) {
     const ampm = h24 >= 12 ? "PM" : "AM";
     const h12raw = h24 % 12;
@@ -67,13 +88,88 @@ function renderGrid() {
     }).join("");
 }
 
+function setSelectedDay(newDay) {
+    selectedDay = startOfDay(newDay);
+
+    const dateInput = document.getElementById('dateInput');
+    const dayLabel = document.getElementById('dayLabel');
+
+    if (dateInput) dateInput.value = toISODate(selectedDay);
+    if (dayLabel) dayLabel.textContent = dayNames[selectedDay.getDay()];
+
+    // Temp re-render of the grid, later will add api to fetch deliveries
+    renderGrid();
+}
+
+function scheduleMidnightRollover() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24,0,0,0);
+
+    const msUntilMidnight = midnight.getTime() - now.getTime();
+
+    setTimeout(() => {
+        // If the user is still on today, advance to the next day
+        const today =  startOfDay(new Date());
+        if(toISODate(selectedDay) === toISODate(today)) {
+            setSelectedDay(addDays(selectedDay, 1));
+        }
+        scheduleMidnightRollover(); // keeps repeating
+    }, msUntilMidnight);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     renderGrid();
+
+    // Start on today's date once the page is loaded
+    setSelectedDay(new Date());
+    scheduleMidnightRollover();
 
     // Doing the hard reload when clicking the refresh button
     const btnRefresh = document.getElementById("btn-refresh");
     if (btnRefresh) {
         btnRefresh.addEventListener("click", () => {window.location.reload()});
+    }
+
+    // Prev and Next day buttons
+    const btnPrev = document.getElementById("btnPrevDay");
+    const btnNext = document.getElementById("btnNextDay");
+
+    if(btnPrev) btnPrev.addEventListener("click", () => setSelectedDay(addDays(selectedDay, -1)));
+    if(btnNext) btnNext.addEventListener("click", () => setSelectedDay(addDays(selectedDay, 1)));
+
+    // Today button
+    const btnToday = document.getElementById("btnToday");
+    if (btnToday) btnToday.addEventListener("click", () => setSelectedDay(new Date()));
+
+    // Date picker change
+    const dateInput = document.getElementById("dateInput");
+    if(dateInput) {
+        dateInput.addEventListener("click", () => {
+            const raw = dateInput.value; // YYYY-MM-DD
+            if (!raw) return;
+            const d = new Date(raw + "T00:00:00");
+            if (!Number.isNaN(d.getTime())) setSelectedDay(d);
+        });
+    }
+
+    // Calendar button (opens the browser date picker)
+    const btnCalendar = document.getElementById("btnCalendar");
+    if (btnCalendar && dateInput) {
+        btnCalendar.addEventListener("click", () => {
+            if(dateInput.showPicker) dateInput.showPicker();
+            else dateInput.focus();
+        });
+    }
+
+    // Jump ahead (days) + go button
+    const btnGo = document.getElementById("btnGo");
+    const jumpDays = document.getElementById("jumpDays");
+    if (btnGo && jumpDays) {
+        btnGo.addEventListener("click", () => {
+            const n = Number(jumpDays.value || 0);
+            setSelectedDay(addDays(selectedDay, n * 7));
+        });
     }
 
     // Layout only -- preventing page jump when clicking +
