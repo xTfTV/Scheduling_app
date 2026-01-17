@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="controls-group controls-group-inline">
-                <button class="chip" id="btnPrevDay" aria-label="Previous day">›</button>
+                <button class="chip" id="btnPrevDay" aria-label="Previous day">‹</button>
                 <button class="pill small" id="btnToday">Today</button>
                 <button class="chip" id="btnNextDay" aria-label="Next Day">›</button>
                 <button class="pill small" id="btnCalendar">Calendar</button>
@@ -71,12 +71,9 @@
         <div class="gridwrap">
             <table class="schedule" aria-label="Delivery schedule grid">
                 <thead>
-                    <tr>
+                    <tr id="dailyHeadRow">
                         <th class="sticky-col">Time</th>
-                        <th>Driver A</th>
-                        <th>Driver B</th>
-                        <th>Driver C</th>
-                        <th>Driver D</th>
+                        <!-- Driver columns injected by JS -->
                         <th class="right-col">Notes</th>
                     </tr>
                 </thead>

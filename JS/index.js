@@ -1,12 +1,22 @@
 // Layout Grid Generator
 
-const drivers = ["Driver A", "Driver B", "Driver C", "Driver D"];
+let drivers = [];
 const startHour = 7;
 const endHour = 20;
 const intervalMinutes = 10;
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let selectedDay = null;
+
+// Fetching the drivers via api call
+async function fetchDrivers() {
+    const res = await fetch("/API/drivers");
+    if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Failed to fetch the driver");
+    }
+    return await res.json();
+}
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -50,6 +60,22 @@ function buildTimes() {
     return times;
 }
 
+// Rebuilding the driver columns based on how many drivers are entered
+function renderDailyHeader() {
+    const headRow = document.getElementById("dailyHeadRow");
+    if (!headRow) return;
+
+    // Keep the first TH (Time) and last TH (notes), replace everything in between
+    const first = `<th class="sticky-col">Time</th>`;
+    const driverThs = drivers.map(d => {
+        const name = `${d.first_name} ${d.last_name}`.trim();
+        return `<th data-user-id="${d.user_id}">${name}</th>`
+    }).join("");
+    const last = `<th class="right-col">Notes</th>`;
+
+    headRow.innerHTML = first + driverThs + last;
+}
+
 function renderGrid() {
     const tbody = document.getElementById("scheduleBody");
     const times =  buildTimes();
@@ -61,11 +87,13 @@ function renderGrid() {
         const demoBooked = (t.h === 9 && t.m === 0);
 
         const driverCells = drivers.map((d, colIdx) =>{
-            const cellId = `slot-${timeKey}-${colIdx}`;
+            const cellId = `slot-${timeKey}-${d.user_id}`;
+
+            const driverName = `${d.first_name} ${d.last_name}`.trim();
 
             return `
                 <td>
-                    <div class="slot" data-time="${timeKey}" data-driver="${d}">
+                    <div class="slot" data-time="${timeKey}" data-user-id="${d.user_id}" data-driver-name="${driverName}">
                         ${demoBooked && colIdx === 2 ?  `<div class="booked">Inserted</div>` :  ``}
                         <a class="slot-link" href="#" aria-label="Create Delivery" data-slot="${cellId}">+</a> 
                     </div>
@@ -118,8 +146,15 @@ function scheduleMidnightRollover() {
     }, msUntilMidnight);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    renderGrid();
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        drivers = await fetchDrivers();
+        renderDailyHeader();
+        renderGrid();
+    } catch (e) {
+        console.error(e);
+        alert("Could not load drivers. Check console.")
+    }
 
     // Start on today's date once the page is loaded
     setSelectedDay(new Date());
@@ -127,10 +162,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Doing the hard reload when clicking the refresh button
     const btnRefresh = document.getElementById("btn-refresh");
-    if (btnRefresh) {
-        btnRefresh.addEventListener("click", () => {window.location.reload()});
+    if(btnRefresh) {
+        btnRefresh.addEventListener("click", () => {
+            window.location.reload();
+        });
     }
-
+    
     // Prev and Next day buttons
     const btnPrev = document.getElementById("btnPrevDay");
     const btnNext = document.getElementById("btnNextDay");
