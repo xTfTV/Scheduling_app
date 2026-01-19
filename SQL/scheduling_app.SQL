@@ -12,7 +12,7 @@ CREATE TABLE user_table (
     first_name VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     user_email VARCHAR(50) UNIQUE NOT NULL,
-    role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+    role ENUM('sheduler', 'driver', 'admin') NOT NULL DEFAULT 'scheduler',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
