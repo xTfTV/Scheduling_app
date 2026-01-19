@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New User</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
+    <link rel="stylesheet" href="../Styles/user_creation.css">
+</head>
+<body>
+    <main class="uc-page">
+        <section class="controls uc-center">
+            <div class="controls-row uc-panel">
+                <div class="uc-header">
+                    <div class="uc-title">Create Scheduler / Driver</div>
+                    <a href="/index.html" class="pill small" style="text-decoration:none;">Back</a>
+                </div>
+                <form id="createUserForm" class="uc-form">
+                    <div class="uc-row">
+                        <div class="controls-group uc-grow">
+                            <label for="first_name" class="label">First Name</label>
+                            <input type="text" class="input" id="first_name" required />
+                        </div>
+                        <div class="controls-group uc-grow">
+                            <label for="last_name" class="label">Last Name</label>
+                            <input type="text" class="input" id="last_name" required />
+                        </div>
+                    </div>
+                    <div class="controls-group uc-grow">
+                        <label for="user_email" class="label">Email</label>
+                        <input type="email" id="user_email" class="input" required />
+                    </div>
+                    <div class="controls-group uc-grow">
+                        <label for="password" class="label">Password</label>
+                        <input type="text" id="password" class="input" required />
+                    </div>
+                    <div class="controls-group">
+                        <label for="role" class="label">Role</label>
+                        <select id="role" class="select" required>
+                            <option value="driver" selected>Driver</option>
+                            <option value="scheduler">Scheduler</option>
+                        </select>
+                    </div>
+                    <div class="uc-actions">
+                        <button class="pill" type="submit">Create User</button>
+                        <button class="pill small" type="button" id="btnRefreshUsers">Refresh Table</button>
+                    </div>
+                </form>
+                <div class="uc-divider"></div>
+                <div class="uc-title2">Current Users</div>
+                <div class="gridwrap uc-tablewrap">
+                    <table class="schedule uc-table" aria-label="User's Table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th style="width:1%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="/JS/user_creation.js"></script>
+</body>
+</html>

@@ -163,7 +163,7 @@ app.get('/API/drivers', reqAuth, (req, res) => {
     db.query(
         `SELECT user_id, first_name, last_name, user_email
          FROM user_table
-         WHERE role = 'user'
+         WHERE role = 'driver'
          ORDER BY last_name, first_name`,
          (err, results) => {
             if (err) return res.status(500).json({ message: "DB error" });
@@ -214,6 +214,76 @@ app.get('/API/customers', reqAuth, (req, res) => {
             return res.status(500).send(err);
         }
         res.json(results);
+    });
+});
+
+// Adding the route for only the Admins to create the users who have access to this
+app.get('/user_creation.html', reqAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'HTML', 'user_creation.html'));
+});
+
+// Admin create user API
+app.post('/API/admin/users', reqAdmin, async (req, res) => {
+    const { first_name, last_name, user_email, password, role } = req.body;
+
+    if(!first_name || !last_name || !user_email || !password) {
+        return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Only allowing the admin to have creation priveleges
+    if (role !== "scheduler" && role !== "driver") {
+        return res.status(400).json({ message: "Role must be scheduler or driver" });
+    }
+
+    try {
+        const hash = await bcrypt.hash(password, 12);
+
+        db.query(
+            `INSERT INTO user_table (first_name, last_name, user_email, password_hash, role)
+            VALUES (?,?,?,?,?)`,
+            [first_name.trim(), last_name.trim(), user_email.trim().toLowerCase(), hash, role],
+            (err, result) => {
+                if(err) {
+                    if(err.code === "ER_DUP_ENTRY") {
+                        // incase of dup email
+                        return res.status(409).json({ message: "Email already exists" });
+                    }
+                    return res.status(500).json({ message: "DB error", error: err.code });
+                }
+                return res.json({ ok: true, user_id: result.insertId });
+            }
+        );
+    } catch (e) {
+        res.status(500).json({ message: "Hash error" })
+    }
+});
+
+// Retrieving all accounts for the admin only page for creation and deletion
+app.get("/API/admin/users", reqAdmin, (req, res) => {
+    db.query(
+        `SELECT user_id, first_name, last_name, user_email, role, created_at
+         FROM user_table
+         ORDER BY created_at DESC`,
+        (err, results) => {
+            if(err) return res.status(500).json({ message: "DB error" });
+            res.json(results);
+        }
+    );
+});
+
+// Deleting the users
+app.delete("/API/admin/users/:id", reqAdmin, (req, res) => {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "bad id" });
+
+    // Not allowing self deletion
+    if(req.session.user && Number(req.session.user.user_id) === id){
+        return res.status(400).json({ message: "Cannot delete your own account" });
+    }
+
+    db.query("DELETE FROM user_table WHERE user_id=?", [id], (err,result) => {
+        if(err) return res.status(500).json({ message: "DB error"});
+        res.json({ ok: true, deleted: result.affectedRows });
     });
 });
 

@@ -146,7 +146,28 @@ function scheduleMidnightRollover() {
     }, msUntilMidnight);
 }
 
+async function fetchMe() {
+    const res = await fetch("/API/is_logged_in");
+    if (!res.ok) return null;
+    return await res.json();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+    const me = await fetchMe();
+    const btnAdmin = document.getElementById("btnAdmin");
+
+    if(btnAdmin) {
+        if (me && me.role === "admin") {
+            btnAdmin.style.display = "inline-flex";
+            btnAdmin.addEventListener("click", () => {
+                // sending admin to the user creation page
+                window.location.href = "/user_creation.html";
+            });
+        } else {
+            btnAdmin.style.display = "none";
+        }
+    }
+
     try {
         drivers = await fetchDrivers();
         renderDailyHeader();

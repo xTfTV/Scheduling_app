@@ -185,9 +185,25 @@ body {
 
 .schedule {
     width: 100%;
-    border-collapse: seperate;
+    border-collapse: separate;
     border-spacing: 0;
     min-width: 900px;
+    table-layout: fixed;
+}
+
+.schedule thead th.sticky-col,
+.schedule tbody td.time {
+    width: 110px;
+}
+
+.schedule thead th.right-col,
+.schedule td.right-col {
+    width: 180px;
+}
+
+.schedule thead th:not(.sticky-col):not(.right-col),
+.schedule tbody td:not(.time):not(.right-col) {
+    width: auto;
 }
 
 .schedule thead th {
