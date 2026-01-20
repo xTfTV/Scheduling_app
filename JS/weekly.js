@@ -5,7 +5,58 @@ const intervalMinutes = 10;
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+let me = null;
 let deliveries = [];
+
+// Adding the helper functions to grab the actual drivers from the DB
+
+async function fetchMe() {
+    const res = await fetch("/API/is_logged_in");
+    if(!res.ok) return null;
+    return await res.json();
+}
+
+async function fetchDrivers() {
+    const res = await fetch("/API/drivers");
+    if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Failed to fetch the drivers");
+    }
+    return await res.json();
+}
+
+function renderDriverSelect() {
+    const sel = document.getElementById("driver-select");
+    if (!sel) return;
+
+    // Reset
+    sel.innerHTML = "";
+
+    // Admin/Scheduler can choose all
+    if (me && me.role !== "driver") {
+        const optAll = document.createElement("option");
+        optAll.value = "all";
+        optAll.textContent = "All Drivers";
+        sel.appendChild(optAll);
+    }
+
+    // Add drivers from the DB 
+    drivers.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = String(d.user_id);
+        opt.textContent = `${d.first_name} ${d.last_name}`.trim();
+        sel.appendChild(opt);
+    });
+
+    // Lock the drivers to themselves
+    if (me && me.role === "driver") {
+        sel.value = String(me.user_id);
+        sel.disabled = true;
+    } else {
+        // Default selection
+        if (sel.options.length) sel.value = sel.options[0].value;
+    }
+}
 
 async function fetchWeekDeliveries(driver, weekStartISO) {
     const params = new URLSearchParams({ driver, weekStart: weekStartISO });
@@ -111,7 +162,7 @@ function buildDeliveryMap (driver, weekStart) {
 
     deliveries.filter(d => {
         // Driver filter: if all, include everyone
-        // if(driver !== "all" && String(d.user_id) !== String(driver)) return false;
+        if(driver !== "all" && String(d.user_id) !== String(driver)) return false;
 
         // scheduled_time -> dateKey
         const dt = new Date(d.scheduled_time);
@@ -263,7 +314,10 @@ function handlePrint() {
 
 // Adding the refresh button functionality
 async function refreshDataAndRender() {
-    const driverId = document.getElementById("driver-select").value;
+    let driverId = document.getElementById("driver-select").value;
+
+    if (me && me.role === "driver") driverId = String(me.user_id);
+
     const weekStart = getWeekStartFromInput();
     const weekStartISO = toISODate(weekStart);
 
@@ -279,7 +333,15 @@ async function refreshDataAndRender() {
     }
 }
 
-function init() {
+async function init() {
+    me = await fetchMe();
+    drivers = await fetchDrivers();
+    renderDriverSelect();
+
+    // Show who is logged in
+    const who = document.getElementById("whoami")
+    if (who && me) who.textContent = `${me.user_email} (${me.role})`;
+
     const driverSelect = document.getElementById("driver-select");
     const weekOf = document.getElementById("weekOf");
 
@@ -316,34 +378,34 @@ function init() {
     const wk = startOfWeekSunday(new Date());
     weekOf.value = toISODate(wk);
 
-    driverSelect.addEventListener("change", renderWeeklyGrid);
-    weekOf.addEventListener("change", renderWeeklyGrid);
+    driverSelect.addEventListener("change", refreshDataAndRender);
+    weekOf.addEventListener("change", refreshDataAndRender);
 
     btnPrev.addEventListener("click", () => {
         const weekStart = getWeekStartFromInput();
         weekOf.value = toISODate(addDays(weekStart, -7));
-        renderWeeklyGrid();
+        refreshDataAndRender();
     });
 
     btnNext.addEventListener("click", () => {
         const weekStart = getWeekStartFromInput();
         weekOf.value = toISODate(addDays(weekStart, 7));
-        renderWeeklyGrid();
+        refreshDataAndRender();
     });
     
     btnThis.addEventListener("click", () => {
         const now = startOfWeekSunday(new Date());
         weekOf.value = toISODate(now);
-        renderWeeklyGrid();
+        refreshDataAndRender();
     });
 
     btnGo.addEventListener("click", () => {
         const n = Number(jumpWeeks.value || 0);
         const weekStart = getWeekStartFromInput();
         weekOf.value = toISODate(addDays(weekStart, n*7));
-        renderWeeklyGrid();
+        refreshDataAndRender();
     });
-    renderWeeklyGrid();
+    await refreshDataAndRender();
 }
 
 document.addEventListener("DOMContentLoaded", init);
