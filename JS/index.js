@@ -8,6 +8,9 @@ const intervalMinutes = 10;
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let selectedDay = null;
 
+let me = null;
+let canEditDeliveries = false;
+
 // Fetching the drivers via api call
 async function fetchDrivers() {
     const res = await fetch("/API/drivers");
@@ -75,7 +78,7 @@ function renderDailyHeader() {
 
     headRow.innerHTML = first + driverThs + last;
 }
-
+// renderGrid function for the schedule
 function renderGrid() {
     const tbody = document.getElementById("scheduleBody");
     const times =  buildTimes();
@@ -108,7 +111,7 @@ function renderGrid() {
                 <td class="right-col">
                     <div class="slot">
                         <span class="muted">-</span>
-                        <a class="slot-link" href="#" aria-label="Add note">+</a>
+                        <a class="slot-link" href="#" aria-label="Notes">+</a>
                     </div>
                 </td>
             </tr>
@@ -153,7 +156,9 @@ async function fetchMe() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const me = await fetchMe();
+    me = await fetchMe();
+    canEditDeliveries = !!(me && (me.role === "admin" || me.role === "scheduler"));
+
     const btnAdmin = document.getElementById("btnAdmin");
 
     if(btnAdmin) {
@@ -234,7 +239,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.addEventListener("click", (e) => {
         const a = e.target.closest(".slot-link");
         if (!a) return;
+
         e.preventDefault();
+
+        // Only scheduler/admin can create deliveries
+        if (!canEditDeliveries) return;
+
+        const slot = a.closest(".slot");
+        if (!slot) return;
+
+        // Only handling the driver slots not the notes
+        const userId = slot.dataset.userId;
+        const time = slot.dataset.time
+
+        if (!userId || !time) return;
+
+        const driverName = slot.dataset.driverName || "";
+
+        // current shown date
+        const dateISO = selectedDay ? toISODate(selectedDay) : toISODate(new Date());
+
+        const params = new URLSearchParams({
+            date: dateISO,
+            time,
+            user_id: String(userId),
+            driver_name: driverName,
+            returnTo: "/index.html"
+        });
+        window.location.href = `/new-delivery.html?${params.toString()}`;
     });
 });
 

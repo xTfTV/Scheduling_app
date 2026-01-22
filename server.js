@@ -296,6 +296,11 @@ app.post("/API/logout", (req,res) => {
     });
 });
 
+// API for the delivery creation
+app.get("/new-delivery.html", reqAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, "HTML", "new-delivery.html"));
+})
+
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

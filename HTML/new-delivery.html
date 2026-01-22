@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Delivery</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
+    <link rel="stylesheet" href="../Styles/new-delivery.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="pill" id="btnBack" href="/index.html" style="text-decoration: none;">Back</a>
+            <span class="muted">Create Delivery</span>
+        </div>
+        <div class="topbar-right">
+            <span class="muted" id="whoami"></span>
+            <button class="pill" id="btnLogout" type="button">Logout</button>
+        </div>
+    </header>
+    <main class="page">
+        <section class="nd-shell">
+            <div class="nd-head">
+                <div>
+                    <h1 class="nd-title">New Delivery</h1>
+                    <p class="nd-subtitle">
+                        Assign a delivery to the selected driver/time slot.
+                    </p>
+                </div>
+                <div class="nd-chipbar">
+                    <div class="nd-chip">
+                        <div class="nd-chip-label">Schedule</div>
+                        <div class="nd-chip-value" id="chipWhen">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="nd-grid">
+                <section class="nd-card">
+                    <div class="nd-card-head">
+                        <div>
+                            <h2 class="nd-card-title">Customer Info</h2>
+                        </div>
+                        <span class="nd-badge">Required</span>
+                    </div>
+                    <form id="deliveryForm" class="nd-form" autocomplete="off">
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">First Name</span>
+                                <input class="nd-input" name="first_name" placeholder="John" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Last Name</span>
+                                <input class="nd-input" name="last_name" placeholder="Doe" required />
+                            </label>
+                        </div>
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Email</span>
+                                <input type="email" class="nd-input" name="cust_email" placeholder="johndoe@gmail.com" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Phone</span>
+                                <input class="nd-input" name="cust_phone" placeholder="(555) 555-5555" />
+                                <span class="nd-help">Optional</span>
+                            </label>
+                        </div>
+                        <div class="nd-row">
+                            <label class="nd-field">
+                                <span class="nd-label">Address</span>
+                                <input class="nd-input" name="cust_address" placeholder="123 Main St" required />
+                            </label>
+                        </div>
+                        <div class="nd-row three">
+                            <label class="nd-field">
+                                <span class="nd-label">City</span>
+                                <input class="nd-input" name="cust_city" placeholder="Manville" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Zip</span>
+                                <input class="nd-input" name="cust_zip" placeholder="08835" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Status</span>
+                                <select name="deliv_status" class="nd-input">
+                                    <option value="pending" selected>pending</option>
+                                    <option value="assigned">assigned</option>
+                                    <option value="in_progress">in progress</option>
+                                    <option value="completed">completed</option>
+                                    <option value="cancelled">cancelled</option>
+                                </select>
+                            </label>
+                        </div>
+                    </form>
+                </section>
+                <section class="nd-card">
+                    <div class="nd-card-head">
+                        <div>
+                            <h2 class="nd-card-title">Delivery Details</h2>
+                        </div>
+                        <span class="nd-badge nd-badge-soft">Auto-filled</span>
+                    </div>
+                    <div class="nd-form">
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Scheduled Date</span>
+                                <input class="nd-input" id="scheduledDate" disabled />
+                                <span class="nd-help">From the slot you clicked</span>
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Assigned Driver</span>
+                                <input class="nd-input" id="assignedDriver" disabled />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Driver ID</span>
+                                <input class="nd-input" id="assignedDriverId" disabled />
+                            </label>
+                        </div>
+                        <div class="nd-row">
+                            <label class="nd-field">
+                                <span class="nd-label">Delivery Address</span>
+                                <input form="deliveryForm" class="nd-input" name="del_address" placeholder="123 Main St" required />
+                            </label>
+                        </div>
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Delivery City</span>
+                                <input form="deliveryForm" class="nd-input" name="del_city" placeholder="Manville" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Delivery Zip</span>
+                                <input form="deliveryForm" class="nd-input" name="del_zip" placeholder="08835" required />
+                            </label>
+                        </div>
+                        <div class="nd-row">
+                            <label class="nd-field">
+                                <span class="nd-label">Notes</span>
+                                <textarea name="notes" form="deliveryForm" class="nd-input nd-textarea" rows="5" placeholder="Gate code, Special instructions, etc"></textarea>
+                                <span class="nd-help">Optional</span>
+                            </label>
+                        </div>
+                        <div class="nd-actions">
+                            <a class="pill" id="btnCancel" href="/index.html" style="text-decoration: none;">Cancel</a>
+                            <button class="pill nd-primary" type="submit" form="deliveryForm" disabled>Create Delivery</button>
+                        </div>
+                        <div class="nd-footnote">
+                            button is disabled for now -- wiring to the backend shortly
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

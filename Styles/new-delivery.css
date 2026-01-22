@@ -1,0 +1,212 @@
+/* Page Layout */
+.nd-shell {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 16px;
+}
+
+.nd-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.nd-title {
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.nd-subtitle {
+    margin: 6px 0 0;
+    opacity: 0.75;
+}
+
+.nd-chipbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.nd-chip {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(15,23,42,0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+    min-width: 170px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+    backdrop-filter: blur(10px);
+}
+
+.nd-chip-label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.nd-chip-value {
+    font-weight: 800;
+    font-size: 14px;
+}
+
+/* 2 Column Grid */
+.nd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 980px) {
+    .nd-head {
+        flex-direction: column;
+    }
+    .nd-chipbar {
+        justify-content: flex-start;
+    }
+    .nd-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Creating the card */
+.nd-card {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(15,23,42,0.08);
+    border-radius: 18px;
+    box-shadow: 0 10px 26px rgba(2,6,23,0.06);
+    overflow: hidden;
+}
+
+.nd-card-head {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(15,23,42,0.08);
+}
+
+.nd-card-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+}
+
+.nd-card-sub {
+    margin: 6px 0 0;
+    opacity: 0.7;
+    font-size: 13px;
+}
+
+.nd-badge {
+    font-size: 12px;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 8px 10px;
+    border: 1px solid rgba(15,23,42,0.15);
+    background: rgba(15,23,42,0.06);
+}
+
+.nd-badge-soft {
+    opacity: 0.85;
+}
+
+/* Form Styles */
+.nd-form {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+}
+
+.nd-row {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr;
+}
+
+.nd-row.two {
+    grid-template-columns: 1fr 1fr;
+}
+
+.nd-row.three {
+    grid-template-columns: 1.2fr 0.8fr 1fr;
+}
+
+@media (max-width: 600px) {
+    .nd-row.two, .nd-row.three { grid-template-columns: 1fr; }
+}
+
+.nd-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.nd-label {
+    font-size: 12px;
+    font-weight: 800;
+    opacity: 0.85;
+    letter-spacing: 0.02em;
+}
+
+.nd-help {
+    font-size: 12px;
+    opacity: 0.65;
+}
+
+.nd-input {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(15,23,42,0.12);
+    background: rgba(255,255,255,0.95);
+    padding: 12px 12px;
+    font-size: 14px;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(2,6,23,0.03)
+}
+
+.nd-input:focus {
+    border-color: rgba(15,23,42,0.25);
+    box-shadow: 0 0 0 4px rgba(15,23,42,0.06);
+}
+
+.nd-input:disabled {
+    opacity: 0.7;
+    background: rgba(15,23,42,0.03);
+}
+
+.nd-textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+/* Actions */
+.nd-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.nd-primary {
+    background: rgba(15,23,42,0.9);
+    color: white;
+}
+
+.nd-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.nd-footnote {
+    margin-top: 10px;
+    font-size: 12px;
+    opacity: 0.65;
+    text-align: right;
+}
