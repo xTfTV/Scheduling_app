@@ -299,3 +299,27 @@ body {
 }
 
 .right-col{ min-width: 180px; }
+
+.slot.booked {
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(15,23,42,0.10);
+    background: rgba(15,23,42,0.04);
+}
+
+.booked-title {
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.booked-sub {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
+.pill.small {
+    padding: 6px 10px;
+    font-size: 12px;
+    margin-top: 8px;
+}

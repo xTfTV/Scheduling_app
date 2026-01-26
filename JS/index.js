@@ -11,6 +11,16 @@ let selectedDay = null;
 let me = null;
 let canEditDeliveries = false;
 
+// Fetching the deliveries for the day we are on
+let deliveries = [];
+
+async function fetchDayDeliveries(dateISO) {
+    const params = new URLSearchParams({ date: dateISO });
+    const res = await fetch(`/API/deliveries/day?${params.toString()}`);
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+}
+
 // Fetching the drivers via api call
 async function fetchDrivers() {
     const res = await fetch("/API/drivers");
@@ -78,45 +88,124 @@ function renderDailyHeader() {
 
     headRow.innerHTML = first + driverThs + last;
 }
+
+// Making the renderGrid function actually display the deliveries
+function timeToMinutes(t) {
+    const [h,m] = t.split(":").map(Number);
+    return h * 60 + m;
+}
+
+function buildDeliveryMapForDay(dateISO) {
+    const map = new Map();
+
+    // deliveries are rows from /API/deliveries/day
+    for (const d of deliveries) {
+        const dt = new Date(d.scheduled_time);
+        if (Number.isNaN(dt.getTime())) continue;
+
+        // Only keep the deliveries on the selected day
+        const rowDate = toISODate(dt);
+        if (rowDate !== dateISO) continue;
+
+        const timeKey = `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+        const duration = Number(d.duration_min || 60);
+        const slots = Math.max(1, Math.ceil(duration / intervalMinutes));
+
+        map.set(`${d.user_id}|${timeKey}`, {
+            deliv_id: d.deliv_id,
+            title: d.del_address,
+            note: `${d.del_city} ${d.del_zip}`.trim(),
+            status: d.deliv_status,
+            slots,
+            start: timeKey,
+            raw: d
+        });
+    }
+    return map;
+}
+
 // renderGrid function for the schedule
 function renderGrid() {
     const tbody = document.getElementById("scheduleBody");
     const times =  buildTimes();
 
-    tbody.innerHTML = times.map((t, rowIdx) => {
-        const timeKey = `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`;
+    const dateISO = selectedDay ? toISODate(selectedDay) : toISODate(new Date());
+    const deliveryMap = buildDeliveryMapForDay(dateISO);
 
-        // Visual demo only
-        const demoBooked = (t.h === 9 && t.m === 0);
+    // rowspan skipping per driver column
+    const skip = Array(drivers.length).fill(0);
 
-        const driverCells = drivers.map((d, colIdx) =>{
-            const cellId = `slot-${timeKey}-${d.user_id}`;
+    tbody.innerHTML = times.map((t) => {
+        const timeKey = `${pad2(t.h)}:${pad2(t.m)}`;
 
+        const driverCells = drivers.map((d, colIdx) => {
+            // If covered by a previous rowspan, skip cell
+            if (skip[colIdx] > 0) {
+                skip[colIdx]--;
+                return "";
+            }
+            const key = `${d.user_id}|${timeKey}`;
+            const del = deliveryMap.get(key);
+
+            if (del) {
+                skip[colIdx] = del.slots - 1;
+
+                return `
+                    <td rowspan="${del.slots}">
+                        <div class="delivery">
+                            <div style="font-weight:800;">${del.title}</div>
+                            <div class="muted" style="font-size:12px;">${del.note}</div>
+                            <div class="muted" style="font-size:12px;">${del.start} • ${del.status}</div>
+
+                            ${
+                                canEditDeliveries
+                                    ? `<button class="pill small btnDeleteDelivery" data-deliv-id="${del.deliv_id}" type="button">Delete</button>`
+                                    : ``
+                            }
+                        </div>
+                    </td>
+                `;
+            }
+
+            // Empty slot (plus button)
             const driverName = `${d.first_name} ${d.last_name}`.trim();
 
             return `
                 <td>
                     <div class="slot" data-time="${timeKey}" data-user-id="${d.user_id}" data-driver-name="${driverName}">
-                        ${demoBooked && colIdx === 2 ?  `<div class="booked">Inserted</div>` :  ``}
-                        <a class="slot-link" href="#" aria-label="Create Delivery" data-slot="${cellId}">+</a> 
+                        ${canEditDeliveries ? `<a class="slot-link" href="#" aria-label="Create Delivery">+</a>` : ``}
                     </div>
                 </td>
             `;
-        }).join("");
+        }).join("")
 
-        return `
-            <tr>
-                <td class="time">${t.label}</td>
-                ${driverCells}
-                <td class="right-col">
-                    <div class="slot">
-                        <span class="muted">-</span>
-                        <a class="slot-link" href="#" aria-label="Notes">+</a>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join("");
+            return `
+                <tr>
+                    <td class="time">${t.label}</td>
+                    ${driverCells}
+                    <td class="right-col">
+                        <div class="slot">
+                            <span class="muted">-</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }  
+
+// Load the deliveries whenever the day changes
+async function refreshDay() {
+    if (!selectedDay) return;
+
+    const dateISO = toISODate(selectedDay);
+
+    try {
+        deliveries = await fetchDayDeliveries(dateISO); // Callsthe /API/deliveries/day route
+    } catch (e) {
+        console.error("Failed to fetch the deliveries", e);
+        deliveries = [];
+    }
+    renderGrid();
 }
 
 function setSelectedDay(newDay) {
@@ -128,8 +217,8 @@ function setSelectedDay(newDay) {
     if (dateInput) dateInput.value = toISODate(selectedDay);
     if (dayLabel) dayLabel.textContent = dayNames[selectedDay.getDay()];
 
-    // Temp re-render of the grid, later will add api to fetch deliveries
-    renderGrid();
+    // fetch the deliveries then render
+    refreshDay();
 }
 
 function scheduleMidnightRollover() {
@@ -236,7 +325,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Layout only -- preventing page jump when clicking +
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", async (e) => {
+        // Delete button
+        const delBtn = e.target.closest(".btnDeleteDelivery");
+        if (delBtn) {
+            if (!canEditDeliveries) return;
+
+            const id = delBtn.dataset.delivId;
+            if (!id) return;
+
+            if (!confirm("Delete this delivery?")) return;
+
+            const res = await fetch(`/API/deliveries/${id}`, { method: "DELETE" });
+            if (!res.ok) {
+                alert(await res.text());
+                return;
+            }
+
+            // reload deliveries + grid
+            refreshDay();
+            return;
+        }
+
+        // adding the delivery (plus button)
         const a = e.target.closest(".slot-link");
         if (!a) return;
 

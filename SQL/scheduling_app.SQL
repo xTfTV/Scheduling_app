@@ -39,6 +39,7 @@ CREATE TABLE deliveries_table (
     user_id INT,
     completed_at DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    duration_min INT NOT NULL DEFAULT 60,
     FOREIGN KEY (cust_id) REFERENCES customer_info(cust_id),
     FOREIGN KEY (user_id) REFERENCES user_table(user_id)
 );
