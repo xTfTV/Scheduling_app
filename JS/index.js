@@ -14,6 +14,20 @@ let canEditDeliveries = false;
 // Fetching the deliveries for the day we are on
 let deliveries = [];
 
+function parseMySQLDateTime(v) {
+    if (!v) return null;
+
+    if (v instanceof Date) return v;
+
+    const s = String(v);
+
+    if (s.includes(" ") && !s.includes("T")) {
+        return new Date(s.replace(" ", "T"));
+    }
+
+    return new Date(s);
+}
+
 async function fetchDayDeliveries(dateISO) {
     const params = new URLSearchParams({ date: dateISO });
     const res = await fetch(`/API/deliveries/day?${params.toString()}`);
@@ -57,6 +71,17 @@ function formatTime(h24, m) {
     return `${h12}:${mm} ${ampm}`;
 }
 
+function minutesToHHMM(totalMin) {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${pad2(h)}:${pad2(m)}`;
+}
+
+function addMinutesToHHMM(hhmm, addMin) {
+    const [h, m] = hhmm.split(":").map(Number);
+    return minutesToHHMM(h * 60 + m + addMin);
+}
+
 function buildTimes() {
     const times = [];
 
@@ -97,27 +122,34 @@ function timeToMinutes(t) {
 
 function buildDeliveryMapForDay(dateISO) {
     const map = new Map();
+    const blocked = new Set();
 
     // deliveries are rows from /API/deliveries/day
     for (const d of deliveries) {
-        const dt = new Date(d.scheduled_time);
-        if (Number.isNaN(dt.getTime())) continue;
+        const dt = parseMySQLDateTime(d.scheduled_time);
+        if (!dt || Number.isNaN(dt.getTime())) continue;
 
         // Only keep the deliveries on the selected day
         const rowDate = toISODate(dt);
         if (rowDate !== dateISO) continue;
 
-        const timeKey = `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
+        const snappedMin = Math.floor(dt.getMinutes() / intervalMinutes) * intervalMinutes;
+        const timeKey = `${pad2(dt.getHours())}:${pad2(snappedMin)}`;
+
         const duration = Number(d.duration_min || 60);
         const slots = Math.max(1, Math.ceil(duration / intervalMinutes));
+        const visualSlots = slots + 1;
+
+        const endKey = addMinutesToHHMM(timeKey, duration);
 
         map.set(`${d.user_id}|${timeKey}`, {
             deliv_id: d.deliv_id,
             title: d.del_address,
             note: `${d.del_city} ${d.del_zip}`.trim(),
             status: d.deliv_status,
-            slots,
+            slots: visualSlots,
             start: timeKey,
+            end: endKey,
             raw: d
         });
     }
@@ -155,11 +187,16 @@ function renderGrid() {
                         <div class="delivery">
                             <div style="font-weight:800;">${del.title}</div>
                             <div class="muted" style="font-size:12px;">${del.note}</div>
-                            <div class="muted" style="font-size:12px;">${del.start} • ${del.status}</div>
+                            <div class="muted" style="font-size:12px;">${del.start}-${del.end} • ${del.status}</div>
 
                             ${
                                 canEditDeliveries
-                                    ? `<button class="pill small btnDeleteDelivery" data-deliv-id="${del.deliv_id}" type="button">Delete</button>`
+                                    ? `
+                                        <div class="delivery-actions">
+                                            <button class="pill small btnUpdateDelivery" data-deliv-id="${del.deliv_id}" type="button">Update</button>
+                                            <button class="pill small btnDeleteDelivery" data-deliv-id="${del.deliv_id}" type="button">Delete</button>
+                                        </div>
+                                    `
                                     : ``
                             }
                         </div>
@@ -344,6 +381,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             // reload deliveries + grid
             refreshDay();
+            return;
+        }
+
+        // Adding the update button functionality
+        const updBtn = e.target.closest(".btnUpdateDelivery");
+        if (updBtn) {
+            if (!canEditDeliveries) {
+                return;
+            }
+            const delivId = updBtn.dataset.delivId;
+            if (!delivId) return;
+
+            const dateISO = selectedDay ? toISODate(selectedDay) : toISODate(new Date());
+            const returnTo = `/index.html?date=${encodeURIComponent(dateISO)}`;
+
+            const params = new URLSearchParams({
+                deliv_id: String(delivId),
+                returnTo
+            });
+            window.location.href = `/edit-delivery.html?${params.toString()}`;
             return;
         }
 

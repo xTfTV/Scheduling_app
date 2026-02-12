@@ -519,6 +519,158 @@ app.patch("/API/deliveries/:id/complete", requireLogin, async (req,res) => {
     }
 });
 
+// Adding the edit page API
+app.get("/edit-delivery.html", requireLogin, requireRole("admin", "scheduler"), (req, res) => {
+    res.sendFile(path.join(__dirname, "HTML", "edit-delivery.html"));
+});
+
+// Adding the API to load the deliveries
+app.get("/API/deliveries/:id", requireLogin, requireRole("admin", "scheduler"), (req, res) => {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).send("Bad ID");
+
+    const sql = `
+        SELECT
+            d.deliv_id, d.user_id, d.scheduled_time, d.duration_min,
+            d.deliv_status, d.del_address, d.del_city, d.del_zip, d.notes,
+            d.completed_at,
+            c.cust_id, c.first_name, c.last_name, c.cust_email, c.cust_phone,
+            c.cust_address, c.cust_city, c.cust_zip
+            FROM deliveries_table d
+            LEFT JOIN customer_info c ON c.cust_id = d.cust_id
+            WHERE d.deliv_id = ?
+            LIMIT 1
+    `;
+
+    pool.query(sql, [id], (err,rows) => {
+        if (err) return res.status(500).send("DB error");
+        if (!rows.length) return res.status(404).send("Not found");
+        res.json(rows[0]);
+    });
+});
+
+// Adding the patch to rewrite db data when editing the delivery
+app.patch("/API/deliveries/:id", requireLogin, requireRole("admin", "scheduler"), async (req, res) => {
+    const delivId = Number(req.params.id);
+    if (!delivId) return res.status(400).send("Bad ID");
+
+    const {
+        // customer
+        first_name, last_name, cust_email, cust_phone, cust_address, cust_city, cust_zip,
+
+        // delivery
+        del_address, del_city, del_zip, scheduled_time, user_id, notes, deliv_status, duration_min
+    } = req.body;
+
+    // Basic validation
+    if (!first_name || !last_name || !cust_email || !cust_address || !cust_city || !cust_zip) {
+        return res.status(400).send("Missing required customer fields");
+    }
+    if (!del_address || !del_city || !del_zip || !scheduled_time || !user_id) {
+        return res.status(400).send("Missing required delivery fields");
+    }
+
+    const duration = Number(duration_min || 60);
+    if (!Number.isFinite(duration) || duration <= 0) return res.status(400).send("Invalid duration");
+
+    const status = deliv_status || "pending";
+
+    // mysql2 callback pool => use connection + manual Promise wrappers
+    pool.getConnection((err, con) => {
+        if (err) return res.status(500).send("DB Connection Failed");
+
+        const q = (sql, params=[]) => new Promise((resolve, reject) => {
+            con.query(sql, params, (e, r) => (e ? reject(e) : resolve(r)));
+        });
+
+        const begin = () => new Promise((resolve, reject) => con.beginTransaction(e => e ? reject(e) : resolve()));
+        const commit = () => new Promise((resolve, reject) => con.commit(e => e ? reject(e) : resolve()));
+        const rollback = () => new Promise((resolve, reject) => con.rollback(() => resolve()));
+
+        (async () => {
+            try {
+                await begin();
+
+                // load the current delivery to get the customer id
+                const rows = await q("SELECT cust_id FROM deliveries_table WHERE deliv_id = ? LIMIT 1", [delivId]);
+                if (!rows.length) {
+                    await rollback();
+                    con.release();
+                    return res.status(404).send("Delivery not found");
+                }
+                const custId = rows[0].cust_id;
+
+                // conflict check (avoid overlapping same driver )
+                const newStart = new Date(scheduled_time);
+                if(Number.isNaN(newStart.getTime())) throw new Error("Invalid scheduled time");
+
+                const newEnd = new Date(newStart);
+                newEnd.setMinutes(newEnd.getMinutes() + duration);
+
+                const conflicts = await q(
+                    `
+                    SELECT deliv_id
+                    FROM deliveries_table
+                    WHERE user_id = ?
+                        AND deliv_id <> ?
+                        AND scheduled_time < ?
+                        AND DATE_ADD(scheduled_time, INTERVAL duration_min MINUTE) > ?
+                    LIMIT 1
+                    `,
+                    [Number(user_id), delivId, newEnd, newStart]
+                );
+                if (conflicts.length) {
+                    await rollback();
+                    con.release();
+                    return res.status(400).send("Driver already has a delivery in that time range");
+                }
+
+                // update the customer
+                await q(
+                    `
+                    UPDATE customer_info
+                    SET first_name = ?, last_name = ?, cust_email = ?, cust_phone = ?, cust_address = ?, cust_city = ?, cust_zip = ?
+                    WHERE cust_id = ? 
+                    `,
+                    [first_name, last_name, cust_email, cust_phone || null, cust_address, cust_city, cust_zip, custId]
+                );
+
+                // update the delivery
+                await q(
+                    `
+                    UPDATE deliveries_table
+                    SET del_address = ?, del_city = ?, del_zip = ?,
+                        scheduled_time = ?, user_id = ?,
+                        notes = ?, deliv_status = ?, duration_min = ?
+                    WHERE deliv_id = ?
+                    `,
+                    [del_address, del_city, del_zip, scheduled_time, Number(user_id), notes || null, status, duration, delivId]
+                );
+
+                // if status becomes completed, stamp completed_at -- otherwise clear it
+
+                
+                if(status === "completed") {
+                    await q(
+                        "UPDATE deliveries_table SET completed_at = COALESCE(completed_at, NOW()) WHERE deliv_id=?",
+                        [delivId]
+                    );
+                }
+                
+
+                await commit();
+                con.release();
+                return res.json({ ok: true });
+            } catch (e) {
+                console.error(e);
+                await rollback();
+                con.release();
+                return res.status(500).send(e.message || "Failed to update the delivery");
+            }
+        })();
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     seedDefaultAdmin(); // DEV only

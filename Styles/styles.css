@@ -323,3 +323,78 @@ body {
     font-size: 12px;
     margin-top: 8px;
 }
+
+/* Make each schedule cell behave nicely */
+#scheduleBody td {
+    vertical-align: middle;
+}
+
+/* The clickable empty slots already use .slot; give it a predictable size */
+.slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+}
+
+/* Scheduled delivery card */
+.delivery {
+    width: 92%;
+    max-width: 260px;
+    margin: 0 auto;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(15,23,42,0.12);
+    background: rgba(99,102,241,0.10);
+    box-shadow: 0 8px 18px rgba(2,6,23,0.06);
+    text-align: left;
+}
+
+/* Main title line */
+.delivery .delivery-title {
+    font-weight: 900;
+    font-size: 14px;
+    line-height: 1.1;
+}
+
+/* Secondary Lines */
+.delivery .delivery-sub {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
+/* Row with time/status */
+.delivery .delivery-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Status Pill */
+.delivery .status-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 11px;
+    border: 1px solid rgba(15,23,42,0.12);
+    background: rgba(255,255,255,0.6);
+}
+
+/* Different colors by status */
+.delivery[data-status="assigned"] { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.22); }
+
+/* Adding the delivery actions class */
+.delivery-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.delivery-actions .pill.small {
+    padding: 6px 10px;
+    font-size: 12px;
+}

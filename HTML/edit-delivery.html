@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Delivery</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
+    <link rel="stylesheet" href="../Styles/new-delivery.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-left">
+            <a class="pill" id="btnBack" href="/index.html" style="text-decoration: none;">Back</a>
+            <span class="muted">Edit Delivery</span>
+        </div>
+        <div class="topbar-right">
+            <span class="muted" id="whoami"></span>
+            <button class="pill" id="btnLogout" type="button">Logout</button>
+        </div>
+    </header>
+    <main class="page">
+        <section class="nd-shell">
+            <div class="nd-head">
+                <div>
+                    <h1 class="nd-title">Edit Delivery</h1>
+                    <p class="nd-subtitle">Update customer + delivery details.</p>
+                </div>
+                <div class="nd-chipbar">
+                    <div class="nd-chip">
+                        <div class="nd-chip-label">Delivery ID</div>
+                        <div class="nd-chip-value" id="chipId">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="nd-grid">
+                <!-- Customer Information -->
+                 <section class="nd-card">
+                    <div class="nd-card-head">
+                        <div>
+                            <h2 class="nd-card-title">Customer Info</h2>
+                        </div>
+                        <span class="nd-badge">Required</span>
+                    </div>
+                    <form id="editForm" class="nd-form" autocomplete="off">
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">First Name</span>
+                                <input class="nd-input" name="first_name" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Last Name</span>
+                                <input class="nd-input" name="last_name" required />
+                            </label>
+                        </div>
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Email</span>
+                                <input class="nd-input" type="email" name="cust_email" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Phone</span>
+                                <input class="nd-input" name="cust_phone" />
+                                <span class="nd-help">Optional</span>
+                            </label>
+                        </div>
+                        <div class="nd-row">
+                            <label class="nd-field">
+                                <span class="nd-label">Customer Address</span>
+                                <input class="nd-input" name="cust_address" required />
+                            </label>
+                        </div>
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Customer City</span>
+                                <input class="nd-input" name="cust_city" require />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Customer Zip</span>
+                                <input class="nd-input" name="cust_zip" required />
+                            </label>
+                        </div>
+                    </form>
+                 </section>
+                 <!-- Delivery Information -->
+                  <section class="nd-card">
+                    <div class="nd-card-head">
+                        <div>
+                            <h2 class="nd-card-title">Delivery Details</h2>
+                        </div>
+                        <span class="nd-badge nd-badge-soft">Editable</span>
+                    </div>
+                    <div class="nd-form">
+                        <div class="nd-row two">
+                            <label class="nd-field">
+                                <span class="nd-label">Scheduled Time</span>
+                                <input class="nd-input" type="datetime-local" name="scheduled_time_local" form="editForm" required />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Assigned Driver</span>
+                                <select class="nd-input" name="user_id" form="editForm" required>
+                                    <option value="">Loading...</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="nd-row three">
+                            <label class="nd-field">
+                                <span class="nd-label">Status</span>
+                                <select class="nd-input" name="deliv_status" form="editForm">
+                                    <option value="pending">pending</option>
+                                    <option value="assigned">assigned</option>
+                                    <option value="in_progress">in progress</option>
+                                    <option value="completed">completed</option>
+                                    <option value="cancelled">cancelled</option>
+                                </select>
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Duration (min)</span>
+                                <input class="nd-input" type="number" min="10" step="10" name="duration_min" form="editForm" />
+                            </label>
+                            <label class="nd-field">
+                                <span class="nd-label">Completed At</span>
+                                <input class="nd-input" id="completedAt" disabled />
+                                <span class="nd-help">Auto</span>
+                            </label>
+                            <div class="nd-row">
+                                <label class="nd-field">
+                                    <span class="nd-label">Delivery Address</span>
+                                    <input class="nd-input" name="del_address" form="editForm" required />
+                                </label>
+                            </div>
+                            <div class="nd-row two">
+                                <label class="nd-field">
+                                    <span class="nd-label">Delivery City</span>
+                                    <input class="nd-input" name="del_city" form="editForm" required />
+                                </label>
+                                <label class="nd-field">
+                                    <span class="nd-label">Delivery Zip</span>
+                                    <input class="nd-input" name="del_zip" form="editForm" required />
+                                </label>
+                            </div>
+                            <div class="nd-row">
+                                <label class="nd-field">
+                                    <span class="nd-label">Notes</span>
+                                    <textarea name="notes" class="nd-input nd-textarea" form="editForm" rows="5"></textarea>
+                                    <span class="nd-help">Optional</span>
+                                </label>
+                            </div>
+                            <div class="nd-actions">
+                                <a class="pill" id="btnCancel" href="/index.html" style="text-decoration: none;">Cancel</a>
+                                <button class="pill nd-primary" type="submit" form="editForm">Save Changes</button>
+                            </div>
+                            <div class="nd-footnote" id="statusMsg"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+    <script src="/JS/edit-delivery.js"></script>
+</body>
+</html>
